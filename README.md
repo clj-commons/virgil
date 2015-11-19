@@ -2,7 +2,7 @@
 
 Do you tarnish your Clojure with the occasional hint of Java?  Have you become indescribably tired of reloading your REPL every time you change anything with a `.java` suffix?  Look no further.
 
-In your `project.clj` or `~/.lein/profiles.clj` add this:
+In your `project.clj` or `~/.lein/profiles.clj`, add this:
 
 ```clj
 {:plugins [[lein-virgil "0.1.0"]]}
