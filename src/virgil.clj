@@ -2,8 +2,10 @@
   (:require
     [clojure.java.io :as io]
     [clojure.string :as str]
-    [filevents.core :as fe])
+    [clojure.set :as set])
   (:import
+    [java.util.concurrent
+     ConcurrentHashMap]
     [javax.tools
      DiagnosticCollector
      ForwardingJavaFileManager
@@ -12,13 +14,59 @@
      SimpleJavaFileObject
      StandardJavaFileManager
      ToolProvider]
+    [java.nio.file
+     FileSystems
+     Path
+     Paths
+     WatchEvent$Kind
+     WatchEvent$Modifier
+     StandardWatchEventKinds]
+    [com.sun.nio.file
+     SensitivityWatchEventModifier]
     [clojure.lang
      DynamicClassLoader]
     [java.io
      ByteArrayOutputStream]))
 
+(defn watch-service []
+  (-> (FileSystems/getDefault) .newWatchService))
+
+(defn path [path]
+  (Paths/get path (make-array String 0)))
+
+(defn register-watch [watch-service directory]
+  (.register (path directory) watch-service
+    (into-array WatchEvent$Kind
+      [StandardWatchEventKinds/ENTRY_CREATE
+       StandardWatchEventKinds/ENTRY_MODIFY])
+    (into-array WatchEvent$Modifier
+      [SensitivityWatchEventModifier/HIGH])))
+
+(let [cnt (atom 0)]
+  (defn watch-directory [directory f]
+    (doto
+      (Thread.
+        (fn []
+          (let [w (doto (watch-service)
+                    (register-watch directory))]
+            (loop []
+              (let [k (.take w)]
+                (doseq [e (.pollEvents k)]
+                  (when-let [^Path p (.context e)]
+                    (f (.toFile p))))
+                (.reset k)
+                (recur))))))
+      (.setDaemon true)
+      (.setName (str "virgil-watcher-" (swap! cnt inc)))
+      .start)))
+
 ;; a shout-out to https://github.com/tailrecursion/javastar, which
 ;; provided a map for this territory
+
+(def ^ConcurrentHashMap class-cache
+  (-> (.getDeclaredField clojure.lang.DynamicClassLoader "classCache")
+    (doto (.setAccessible true))
+    (.get nil)))
 
 (defn source-object
   [class-name source]
@@ -45,6 +93,7 @@
     (getClassLoader [location]
       cl)
     (getJavaFileForOutput [location class-name kind sibling]
+      (.remove class-cache class-name)
       (class-object class-name
         (-> cache
           (swap! assoc class-name (ByteArrayOutputStream.))
@@ -59,8 +108,10 @@
         mgr      (class-manager cl (.getStandardFileManager compiler nil nil nil) cache)
         task     (.getTask compiler nil mgr diag nil nil [(source-object class-name source)])]
     (if (.call task)
-      (doseq [[k ^ByteArrayOutputStream v] @cache]
-        (.defineClass ^DynamicClassLoader cl k (.toByteArray v) nil))
+      (do
+        (doseq [[k ^ByteArrayOutputStream v] @cache]
+          (.defineClass ^DynamicClassLoader cl k (.toByteArray v) nil))
+        (keys @cache))
       (throw
         (RuntimeException.
           (apply str
@@ -73,8 +124,8 @@
     (let [prefix (.getCanonicalPath (io/file d))]
       (when-not (contains? @watches prefix)
         (swap! watches conj prefix)
-        (fe/watch
-          (fn [action ^java.io.File file]
+        (watch-directory
+          (fn [^java.io.File file]
             (let [path (.getCanonicalPath file)]
               (when (.endsWith path ".java")
                 (let [path' (.substring path (count prefix) (- (count path) 5))
@@ -85,12 +136,17 @@
                   (try
 
                     (println "\ncompiling" classname)
-                    (compile-java classname (slurp file))
-                    (doseq [ns (all-ns)]
-                      (when (->> (ns-imports ns)
-                              vals
-                              (some #(= classname (.getCanonicalName %))))
-                        (require (symbol (str ns)) :reload)))
+                    (let [class-names (set (compile-java classname (slurp file)))]
+                      (println "compiled" (pr-str (vec class-names)))
+                      (doseq [ns (all-ns)]
+                        (when (->> (ns-imports ns)
+                                vals
+                                (map #(.getCanonicalName ^Class %))
+                                set
+                                (set/intersection class-names)
+                                not-empty)
+                          (println "reloading" (str ns))
+                          (require (symbol (str ns)) :reload))))
 
                     (catch Throwable e
                       #_(.printStackTrace e)
