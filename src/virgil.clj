@@ -124,7 +124,7 @@
     (let [prefix (.getCanonicalPath (io/file d))]
       (when-not (contains? @watches prefix)
         (swap! watches conj prefix)
-        (watch-directory
+        (watch-directory d
           (fn [^java.io.File file]
             (let [path (.getCanonicalPath file)]
               (when (.endsWith path ".java")
@@ -150,5 +150,4 @@
 
                     (catch Throwable e
                       #_(.printStackTrace e)
-                      (println (.getMessage e))))))))
-          d)))))
+                      (println (.getMessage e)))))))))))))
