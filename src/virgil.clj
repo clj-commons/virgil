@@ -18,6 +18,8 @@
      FileSystems
      Path
      Paths
+     WatchEvent
+     WatchService
      WatchEvent$Kind
      WatchEvent$Modifier
      StandardWatchEventKinds]
@@ -26,34 +28,68 @@
     [clojure.lang
      DynamicClassLoader]
     [java.io
+     File
      ByteArrayOutputStream]))
 
-(defn watch-service []
+(defn ^WatchService watch-service []
   (-> (FileSystems/getDefault) .newWatchService))
 
-(defn path [path]
-  (Paths/get path (make-array String 0)))
+(defn all-files [^File dir]
+  (concat
+    (->> dir
+      .listFiles
+      (filter #(.isDirectory ^File %))
+      (mapcat all-files))
+    (->> dir
+      .listFiles
+      (remove #(.isDirectory ^File %)))))
 
-(defn register-watch [watch-service directory]
-  (.register (path directory) watch-service
-    (into-array WatchEvent$Kind
-      [StandardWatchEventKinds/ENTRY_CREATE
-       StandardWatchEventKinds/ENTRY_MODIFY])
-    (into-array WatchEvent$Modifier
-      [SensitivityWatchEventModifier/HIGH])))
+(defn all-directories [^File dir]
+  (conj
+    (->> dir
+      .listFiles
+      (filter #(.isDirectory ^File %))
+      (mapcat all-directories))
+    dir))
+
+(defn register-watch
+  "Takes a mapping of keys to directories, and registers a watch on the new"
+  [key->dir ^WatchService watch-service ^File directory]
+  (->> directory
+    all-directories
+    (reduce
+      (fn [key-dir ^File dir]
+        (assoc key->dir
+          (.register (.toPath dir) watch-service
+            (into-array WatchEvent$Kind
+              [StandardWatchEventKinds/ENTRY_CREATE
+               StandardWatchEventKinds/ENTRY_MODIFY])
+            (into-array WatchEvent$Modifier
+              [SensitivityWatchEventModifier/HIGH]))
+          dir))
+      key->dir)))
 
 (let [cnt (atom 0)]
   (defn watch-directory [directory f]
     (doto
       (Thread.
         (fn []
-          (let [w (doto (watch-service)
-                    (register-watch directory))]
+          (let [w (watch-service)
+                key->dir (atom (register-watch {} w directory))]
             (loop []
-              (let [k (.take w)]
-                (doseq [e (.pollEvents k)]
-                  (when-let [^Path p (.context e)]
-                    (f (.toFile p))))
+              (let [k (.take w)
+                    prefix (.toPath (@key->dir k ))]
+                (doseq [^WatchEvent e (.pollEvents k)]
+                  (when-let [^File file (-> e .context .toFile)]
+
+                    ;; notify about new file
+                    (f (.toFile (.resolve prefix (str file))))
+
+                    ;; update watch, if it's a new directory
+                    (when (and
+                            (= StandardWatchEventKinds/ENTRY_CREATE (.kind e))
+                            (.isDirectory file))
+                      (swap! key->dir register-watch w file))))
                 (.reset k)
                 (recur))))))
       (.setDaemon true)
@@ -99,32 +135,41 @@
           (swap! assoc class-name (ByteArrayOutputStream.))
           (get class-name))))))
 
-(defn compile-java
-  [class-name source]
+(defn source->bytecode [class-name source]
   (let [compiler (ToolProvider/getSystemJavaCompiler)
         diag     (DiagnosticCollector.)
         cache    (atom {})
-        cl       (clojure.lang.RT/makeClassLoader)
-        mgr      (class-manager cl (.getStandardFileManager compiler nil nil nil) cache)
+        mgr      (class-manager nil (.getStandardFileManager compiler nil nil nil) cache)
         task     (.getTask compiler nil mgr diag nil nil [(source-object class-name source)])]
     (if (.call task)
-      (do
-        (doseq [[k ^ByteArrayOutputStream v] @cache]
-          (.defineClass ^DynamicClassLoader cl k (.toByteArray v) nil))
-        (keys @cache))
+      (zipmap
+        (keys @cache)
+        (->> @cache
+          vals
+          (map #(.toByteArray ^ByteArrayOutputStream %))))
       (throw
         (RuntimeException.
           (apply str
             (interleave (.getDiagnostics diag) (repeat "\n\n"))))))))
 
-(defonce watches (atom #{}))
+(defn compile-java
+  [class-name source]
+  (let [cl              (clojure.lang.RT/makeClassLoader)
+        class->bytecode (source->bytecode class-name source)]
+    (doseq [[class-name bytecode] class->bytecode]
+      (.defineClass ^DynamicClassLoader cl class-name bytecode nil))
+    (keys class->bytecode)))
+
+;;;
+
+(def watches (atom #{}))
 
 (defn watch [& directories]
   (doseq [d directories]
     (let [prefix (.getCanonicalPath (io/file d))]
       (when-not (contains? @watches prefix)
         (swap! watches conj prefix)
-        (watch-directory d
+        (watch-directory (io/file d)
           (fn [^java.io.File file]
             (let [path (.getCanonicalPath file)]
               (when (.endsWith path ".java")
