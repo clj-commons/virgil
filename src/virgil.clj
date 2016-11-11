@@ -1,35 +1,18 @@
 (ns virgil
   (:require
     [clojure.java.io :as io]
+    [clojure.set :as set]
     [clojure.string :as str]
-    [clojure.set :as set])
+    [virgil.compile :refer [compile-java]])
   (:import
-    [java.util.concurrent
-     ConcurrentHashMap]
-    [javax.tools
-     DiagnosticCollector
-     ForwardingJavaFileManager
-     JavaCompiler
-     JavaFileObject$Kind
-     SimpleJavaFileObject
-     StandardJavaFileManager
-     ToolProvider]
-    [java.nio.file
-     FileSystems
-     Path
-     Paths
-     WatchEvent
-     WatchService
-     WatchEvent$Kind
-     WatchEvent$Modifier
-     StandardWatchEventKinds]
-    [com.sun.nio.file
-     SensitivityWatchEventModifier]
-    [clojure.lang
-     DynamicClassLoader]
-    [java.io
-     File
-     ByteArrayOutputStream]))
+   (com.sun.nio.file SensitivityWatchEventModifier)
+   (java.io File)
+   (java.nio.file FileSystems
+                  StandardWatchEventKinds
+                  WatchEvent
+                  WatchEvent$Kind
+                  WatchEvent$Modifier
+                  WatchService)))
 
 (defn ^WatchService watch-service []
   (-> (FileSystems/getDefault) .newWatchService))
@@ -95,72 +78,6 @@
       (.setDaemon true)
       (.setName (str "virgil-watcher-" (swap! cnt inc)))
       .start)))
-
-;; a shout-out to https://github.com/tailrecursion/javastar, which
-;; provided a map for this territory
-
-(def ^ConcurrentHashMap class-cache
-  (-> (.getDeclaredField clojure.lang.DynamicClassLoader "classCache")
-    (doto (.setAccessible true))
-    (.get nil)))
-
-(defn source-object
-  [class-name source]
-  (proxy [SimpleJavaFileObject]
-      [(java.net.URI/create (str "string:///"
-                                 (.replace ^String class-name \. \/)
-                                 (. JavaFileObject$Kind/SOURCE extension)))
-       JavaFileObject$Kind/SOURCE]
-      (getCharContent [_] source)))
-
-(defn class-object
-  "Returns a JavaFileObject to store a class file's bytecode."
-  [class-name baos]
-  (proxy [SimpleJavaFileObject]
-      [(java.net.URI/create (str "string:///"
-                                 (.replace ^String class-name \. \/)
-                                 (. JavaFileObject$Kind/CLASS extension)))
-       JavaFileObject$Kind/CLASS]
-    (openOutputStream [] baos)))
-
-(defn class-manager
-  [cl manager cache]
-  (proxy [ForwardingJavaFileManager] [manager]
-    (getClassLoader [location]
-      cl)
-    (getJavaFileForOutput [location class-name kind sibling]
-      (.remove class-cache class-name)
-      (class-object class-name
-        (-> cache
-          (swap! assoc class-name (ByteArrayOutputStream.))
-          (get class-name))))))
-
-(defn source->bytecode [class-name source]
-  (let [compiler (ToolProvider/getSystemJavaCompiler)
-        diag     (DiagnosticCollector.)
-        cache    (atom {})
-        mgr      (class-manager nil (.getStandardFileManager compiler nil nil nil) cache)
-        task     (.getTask compiler nil mgr diag nil nil [(source-object class-name source)])]
-    (if (.call task)
-      (zipmap
-        (keys @cache)
-        (->> @cache
-          vals
-          (map #(.toByteArray ^ByteArrayOutputStream %))))
-      (throw
-        (RuntimeException.
-          (apply str
-            (interleave (.getDiagnostics diag) (repeat "\n\n"))))))))
-
-(defn compile-java
-  [class-name source]
-  (let [cl              (clojure.lang.RT/makeClassLoader)
-        class->bytecode (source->bytecode class-name source)]
-    (doseq [[class-name bytecode] class->bytecode]
-      (.defineClass ^DynamicClassLoader cl class-name bytecode nil))
-    (keys class->bytecode)))
-
-;;;
 
 (def watches (atom #{}))
 
