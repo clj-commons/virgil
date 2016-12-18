@@ -6,16 +6,28 @@
    [clojure.test :refer :all]))
 
 (defn magic-number []
-  (let [c (Class/forName "virgil.Test" false (clojure.lang.RT/makeClassLoader))]
+  (let [cl (clojure.lang.RT/makeClassLoader)
+        c (Class/forName "virgil.Wrapper" false cl)]
     (eval `(. ~c magicNumber))))
 
+(defn cp [file class]
+  (sh/sh "cp" (str "test/" file ".java") (str "/tmp/virgil/virgil/" class ".java"))
+  (Thread/sleep 2000))
+
 (deftest test-watch
+  (sh/sh "rm" "-rf" "/tmp/virgil")
   (.mkdirs (io/file "/tmp/virgil/virgil"))
   (virgil/watch "/tmp/virgil")
-  (Thread/sleep 5000)
-  (sh/sh "cp" "test/a.java" "/tmp/virgil/virgil/Test.java")
-  (Thread/sleep 2000)
+
+  (cp 'a 'Test)
+  (cp 'c 'Wrapper)
   (is (= 24 (magic-number)))
-  (sh/sh "cp" "test/b.java" "/tmp/virgil/virgil/Test.java")
-  (Thread/sleep 2000)
+
+  (cp 'd 'Wrapper)
+  (is (= 25 (magic-number)))
+
+  (cp 'b 'Test)
+  (is (= 43 (magic-number)))
+
+  (cp 'c 'Wrapper)
   (is (= 42 (magic-number))))

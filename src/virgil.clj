@@ -41,7 +41,7 @@
   (->> directory
     all-directories
     (reduce
-      (fn [key-dir ^File dir]
+      (fn [key->dir ^File dir]
         (assoc key->dir
           (.register (.toPath dir) watch-service
             (into-array WatchEvent$Kind
@@ -61,7 +61,7 @@
                 key->dir (atom (register-watch {} w directory))]
             (loop []
               (let [k (.take w)
-                    prefix (.toPath (@key->dir k ))]
+                    prefix (.toPath (@key->dir k))]
                 (doseq [^WatchEvent e (.pollEvents k)]
                   (when-let [^File file (-> e .context .toFile)]
 
@@ -85,31 +85,14 @@
   (doseq [d directories]
     (let [prefix (.getCanonicalPath (io/file d))]
       (when-not (contains? @watches prefix)
-        (swap! watches conj prefix)
-        (watch-directory (io/file d)
-          (fn [^java.io.File file]
-            (let [path (.getCanonicalPath file)]
-              (when (.endsWith path ".java")
-                (let [path' (.substring path (count prefix) (- (count path) 5))
-                      classname (->> (str/split path' #"/")
-                                  (remove empty?)
-                                  (interpose ".")
-                                  (apply str))]
-                  (try
-
-                    (println "\ncompiling" classname)
-                    (let [class-names (set (compile-java classname (slurp file)))]
-                      (println "compiled" (pr-str (vec class-names)))
-                      (doseq [ns (all-ns)]
-                        (when (->> (ns-imports ns)
-                                vals
-                                (map #(.getCanonicalName ^Class %))
-                                set
-                                (set/intersection class-names)
-                                not-empty)
-                          (println "reloading" (str ns))
-                          (require (symbol (str ns)) :reload))))
-
-                    (catch Throwable e
-                      #_(.printStackTrace e)
-                      (println (.getMessage e)))))))))))))
+        (let [recompile (fn []
+                          (println (str "\nrecompiling all files in " d))
+                          (compile-all-java d)
+                          (doseq [ns (all-ns)]
+                            (try
+                              (require (symbol (str ns)) :reload)
+                              (catch Throwable e
+                                ))))]
+          (swap! watches conj prefix)
+          (watch-directory (io/file d) (fn [_] (recompile)))
+          (recompile))))))
