@@ -58,7 +58,7 @@
   (->> directory
     all-directories
     (reduce
-      (fn [key-dir ^File dir]
+      (fn [key->dir ^File dir]
         (assoc key->dir
           (.register (.toPath dir) watch-service
             (into-array WatchEvent$Kind
@@ -78,7 +78,7 @@
                 key->dir (atom (register-watch {} w directory))]
             (loop []
               (let [k (.take w)
-                    prefix (.toPath (@key->dir k ))]
+                    prefix (.toPath (@key->dir k))]
                 (doseq [^WatchEvent e (.pollEvents k)]
                   (when-let [^File file (-> e .context .toFile)]
 
@@ -135,12 +135,15 @@
           (swap! assoc class-name (ByteArrayOutputStream.))
           (get class-name))))))
 
-(defn source->bytecode [class-name source]
+(defn source->bytecode [name->source]
   (let [compiler (ToolProvider/getSystemJavaCompiler)
         diag     (DiagnosticCollector.)
         cache    (atom {})
         mgr      (class-manager nil (.getStandardFileManager compiler nil nil nil) cache)
-        task     (.getTask compiler nil mgr diag nil nil [(source-object class-name source)])]
+        task     (.getTask compiler nil mgr diag nil nil
+                   (->> name->source
+                     (map #(source-object (key %) (val %)))
+                     vec))]
     (if (.call task)
       (zipmap
         (keys @cache)
@@ -153,12 +156,30 @@
             (interleave (.getDiagnostics diag) (repeat "\n\n"))))))))
 
 (defn compile-java
-  [class-name source]
-  (let [cl              (clojure.lang.RT/makeClassLoader)
-        class->bytecode (source->bytecode class-name source)]
-    (doseq [[class-name bytecode] class->bytecode]
-      (.defineClass ^DynamicClassLoader cl class-name bytecode nil))
-    (keys class->bytecode)))
+  [name->source]
+  (when-not (empty? name->source)
+    (let [cl              (clojure.lang.RT/makeClassLoader)
+          class->bytecode (source->bytecode name->source)]
+      (doseq [[class-name bytecode] class->bytecode]
+        (.defineClass ^DynamicClassLoader cl class-name bytecode nil))
+      (keys class->bytecode))))
+
+(defn file->class [^String prefix ^File f]
+  (let [path (str f)]
+    (when (.endsWith path ".java")
+      (let [path' (.substring path (count prefix) (- (count path) 5))]
+        (->> (str/split path' #"/")
+          (remove empty?)
+          (interpose ".")
+          (apply str))))))
+
+(defn compile-all-java [directory]
+  (->> (all-files (io/file directory))
+    (map (fn [f] [(file->class directory f) f]))
+    (remove #(-> % first nil?))
+    (map (fn [[c f]] [c (slurp f)]))
+    (into {})
+    compile-java))
 
 ;;;
 
@@ -168,31 +189,14 @@
   (doseq [d directories]
     (let [prefix (.getCanonicalPath (io/file d))]
       (when-not (contains? @watches prefix)
-        (swap! watches conj prefix)
-        (watch-directory (io/file d)
-          (fn [^java.io.File file]
-            (let [path (.getCanonicalPath file)]
-              (when (.endsWith path ".java")
-                (let [path' (.substring path (count prefix) (- (count path) 5))
-                      classname (->> (str/split path' #"/")
-                                  (remove empty?)
-                                  (interpose ".")
-                                  (apply str))]
-                  (try
-
-                    (println "\ncompiling" classname)
-                    (let [class-names (set (compile-java classname (slurp file)))]
-                      (println "compiled" (pr-str (vec class-names)))
-                      (doseq [ns (all-ns)]
-                        (when (->> (ns-imports ns)
-                                vals
-                                (map #(.getCanonicalName ^Class %))
-                                set
-                                (set/intersection class-names)
-                                not-empty)
-                          (println "reloading" (str ns))
-                          (require (symbol (str ns)) :reload))))
-
-                    (catch Throwable e
-                      #_(.printStackTrace e)
-                      (println (.getMessage e)))))))))))))
+        (let [recompile (fn []
+                          (println (str "\nrecompiling all files in " d))
+                          (compile-all-java d)
+                          (doseq [ns (all-ns)]
+                            (try
+                              (require (symbol (str ns)) :reload)
+                              (catch Throwable e
+                                ))))]
+          (swap! watches conj prefix)
+          (watch-directory (io/file d) (fn [_] (recompile)))
+          (recompile))))))
