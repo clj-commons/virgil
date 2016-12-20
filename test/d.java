@@ -1,7 +1,10 @@
 package virgil;
 
-public class Wrapper {
-    public static int magicNumber() {
-        return Test.magicNumber() + 1;
+public class Test extends ATest {
+
+    public Test() { super(); }
+
+    public int magicNumber() {
+        return super.magicNumber() + 1;
     }
 }

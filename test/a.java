@@ -1,7 +1,10 @@
 package virgil;
 
-public class Test {
-    public static int magicNumber() {
+public abstract class ATest {
+
+    public ATest() {}
+
+    public int magicNumber() {
         return 24;
     }
 }
