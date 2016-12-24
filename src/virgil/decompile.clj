@@ -38,7 +38,7 @@
       (if (empty? unranked)
         ranked
         (let [children (->> unranked
-                         (filter #(->> % val (some ranked)))
+                         (filter #(->> % val (every? ranked)))
                          (map key))]
           (recur
             (merge ranked (zipmap children (repeat rank)))
