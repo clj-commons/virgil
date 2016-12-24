@@ -1,4 +1,4 @@
-(defproject virgil "0.1.3"
+(defproject virgil "0.1.4"
   :license {:name "MIT License"}
   :dependencies []
   :profiles {:dev {:dependencies [[org.clojure/clojure "1.8.0"]
