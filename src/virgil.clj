@@ -1,6 +1,7 @@
 (ns virgil
   (:require
    [clojure.java.io :as io]
+   [clojure.tools.namespace.repl :refer (refresh-all)]
    [virgil.watch :refer (watch-directory)]
    [virgil.compile :refer (compile-all-java)]))
 
@@ -13,11 +14,10 @@
         (let [recompile (fn []
                           (println (str "\nrecompiling all files in " d))
                           (compile-all-java d)
-                          (doseq [ns (all-ns)]
-                            (try
-                              (require (symbol (str ns)) :reload)
-                              (catch Throwable e
-                                ))))]
+                          ;; We need to create a thread binding for *ns* so that
+                          ;; refresh-all can use in-ns.
+                          (binding [*ns* *ns*]
+                            (refresh-all)))]
           (swap! watches conj prefix)
           (watch-directory (io/file d)
             (fn [f]
