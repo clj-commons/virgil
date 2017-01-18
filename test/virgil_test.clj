@@ -2,8 +2,12 @@
   (:require
    [clojure.java.io :as io]
    [clojure.java.shell :as sh]
-   [virgil :as v]
-   [clojure.test :refer :all]))
+   [virgil]
+   [clojure.test :refer :all]
+   [clojure.tools.namespace.repl :refer [disable-unload!]]))
+
+;; Unloading this namespace while test-watch is running breaks the test.
+(disable-unload!)
 
 (defn magic-number []
   (let [cl (clojure.lang.RT/makeClassLoader)
