@@ -9,7 +9,7 @@
 
 (defn overwrite-dependencies [deps overwrites]
   (let [project->dep (zipmap (map first deps) deps)]
-    (->> dependencies
+    (->> overwrites
       (reduce
         (fn [m [p v]] (assoc m p [p v]))
         project->dep)
