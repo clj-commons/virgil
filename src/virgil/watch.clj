@@ -64,7 +64,10 @@
                   (when-let [^File file (-> e .context .toFile)]
 
                     ;; notify about new file
-                    (f (.toFile (.resolve prefix (str file))))
+                    (try
+                      (f (.toFile (.resolve prefix (str file))))
+                      (catch Throwable e
+                        (println (.getMessage e))))
 
                     ;; update watch, if it's a new directory
                     (when (and
