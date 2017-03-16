@@ -1,4 +1,4 @@
-![](docs/underworld.jpg)
+![](docs/cocytus.jpg)
 
 Do you tarnish your Clojure with the occasional hint of Java?  Have you become indescribably tired of reloading your REPL every time you change anything with a `.java` suffix?  Look no further.
 
