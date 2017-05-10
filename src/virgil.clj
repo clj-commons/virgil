@@ -22,6 +22,6 @@
           (watch-directory (io/file d)
             (fn [f]
               (when (and (.endsWith (str f) ".java")
-                      (not (.contains (str f) ".#")))
+                      (not (.contains (str f) "#")))
                 (recompile))))
           (recompile))))))
