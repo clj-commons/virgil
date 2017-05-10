@@ -21,6 +21,7 @@
           (swap! watches conj prefix)
           (watch-directory (io/file d)
             (fn [f]
-              (when (.endsWith (str f) ".java")
+              (when (and (.endsWith (str f) ".java")
+                      (not (.contains (str f) ".#")))
                 (recompile))))
           (recompile))))))

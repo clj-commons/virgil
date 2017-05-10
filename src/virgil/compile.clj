@@ -92,7 +92,8 @@
 
 (defn file->class [^String prefix ^File f]
   (let [path (str f)]
-    (when (.endsWith path ".java")
+    (when (and (.endsWith path ".java")
+            (not (.contains path ".#")))
       (let [path' (.substring path (count prefix) (- (count path) 5))]
         (->> (str/split path' #"/|\\")
           (remove empty?)
