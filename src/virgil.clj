@@ -3,7 +3,7 @@
    [clojure.java.io :as io]
    [clojure.tools.namespace.repl :refer (refresh-all)]
    [virgil.watch :refer (watch-directory)]
-   [virgil.compile :refer (compile-all-java)]))
+   [virgil.compile :refer (compile-all-java java-file?)]))
 
 (def watches (atom #{}))
 
@@ -21,7 +21,6 @@
           (swap! watches conj prefix)
           (watch-directory (io/file d)
             (fn [f]
-              (when (and (.endsWith (str f) ".java")
-                      (not (.contains (str f) "#")))
+              (when (java-file? (str f))
                 (recompile))))
           (recompile))))))
