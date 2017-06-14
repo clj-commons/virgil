@@ -31,7 +31,7 @@
   [class-name source]
   (proxy [SimpleJavaFileObject]
       [(java.net.URI/create (str "string:///"
-                                 (.replace ^String class-name \. \/)
+                                 (.replace ^String class-name "." File/separator)
                                  (. JavaFileObject$Kind/SOURCE extension)))
        JavaFileObject$Kind/SOURCE]
       (getCharContent [_] source)))
@@ -41,7 +41,7 @@
   [class-name baos]
   (proxy [SimpleJavaFileObject]
       [(java.net.URI/create (str "string:///"
-                                 (.replace ^String class-name \. \/)
+                                 (.replace ^String class-name "." File/separator)
                                  (. JavaFileObject$Kind/CLASS extension)))
        JavaFileObject$Kind/CLASS]
     (openOutputStream [] baos)))
