@@ -94,7 +94,7 @@
   (let [path (str f)]
     (when (.endsWith path ".java")
       (let [path' (.substring path (count prefix) (- (count path) 5))]
-        (->> (str/split path' #"/")
+        (->> (str/split path' #"/|\\")
           (remove empty?)
           (interpose ".")
           (apply str))))))
