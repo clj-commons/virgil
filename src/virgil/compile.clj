@@ -30,7 +30,7 @@
 (defn source-object
   [class-name source]
   (proxy [SimpleJavaFileObject]
-      [(java.net.URI/create (str "string:///"
+      [(java.net.URI/create (str "string://" File/separator
                                  (.replace ^String class-name "." File/separator)
                                  (. JavaFileObject$Kind/SOURCE extension)))
        JavaFileObject$Kind/SOURCE]
@@ -40,7 +40,7 @@
   "Returns a JavaFileObject to store a class file's bytecode."
   [class-name baos]
   (proxy [SimpleJavaFileObject]
-      [(java.net.URI/create (str "string:///"
+      [(java.net.URI/create (str "string://" File/separator
                                  (.replace ^String class-name "." File/separator)
                                  (. JavaFileObject$Kind/CLASS extension)))
        JavaFileObject$Kind/CLASS]
