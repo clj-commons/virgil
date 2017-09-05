@@ -99,9 +99,14 @@
           (interpose ".")
           (apply str))))))
 
-(defn compile-all-java [directory]
-  (->> (watch/all-files (io/file directory))
-    (map (fn [f] [(file->class directory f) f]))
+(defn compile-all-java [directories]
+  (->> directories
+    (mapcat
+      (fn [d]
+        (->> d
+          io/file
+          watch/all-files
+          (map #(vector (file->class d %) %)))))
     (remove #(-> % first nil?))
     (map (fn [[c f]] [c (slurp f)]))
     (into {})
