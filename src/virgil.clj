@@ -7,6 +7,35 @@
 
 (def watches (atom #{}))
 
+(defn- consume-queue-and-callback-when-idle
+  [queue idle-time-in-ms f]
+  (loop [callback-pending false]
+    (let [el (if callback-pending
+               (.poll queue idle-time-in-ms java.util.concurrent.TimeUnit/MILLISECONDS)
+               (.take queue))]
+      (if (nil? el)
+        (do
+          (try
+            (f)
+            (catch Throwable e
+              (println (.getMessage e))))
+          (recur false))
+        (recur true)))))
+
+(defn make-idle-callback
+  [f idle-time-in-ms]
+  (let [queue (java.util.concurrent.LinkedBlockingQueue.)
+        start-thread (delay
+                      (doto
+                          (Thread. (fn []
+                                     (consume-queue-and-callback-when-idle queue idle-time-in-ms f)))
+                        (.setDaemon true)
+                        (.setName "virgil-idle-callback")
+                        .start))]
+    (fn []
+      @start-thread
+      (.put queue :go))))
+
 (defn watch [& directories]
   (let [recompile (fn []
                     (println (str "\nrecompiling all files in " (vec directories)))
@@ -14,7 +43,8 @@
                     ;; We need to create a thread binding for *ns* so that
                     ;; refresh-all can use in-ns.
                     (binding [*ns* *ns*]
-                      (refresh-all)))]
+                      (refresh-all)))
+        recompile (make-idle-callback recompile 100)]
 
     (doseq [d directories]
      (let [prefix (.getCanonicalPath (io/file d))]
