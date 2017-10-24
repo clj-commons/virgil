@@ -31,7 +31,7 @@
   [class-name source]
   (proxy [SimpleJavaFileObject]
       [(java.net.URI/create (str "string:///"
-                                 (.replace ^String class-name \. \/)
+                                 (.replace ^String class-name "." "/")
                                  (. JavaFileObject$Kind/SOURCE extension)))
        JavaFileObject$Kind/SOURCE]
       (getCharContent [_] source)))
@@ -41,7 +41,7 @@
   [class-name baos]
   (proxy [SimpleJavaFileObject]
       [(java.net.URI/create (str "string:///"
-                                 (.replace ^String class-name \. \/)
+                                 (.replace ^String class-name "." "/")
                                  (. JavaFileObject$Kind/CLASS extension)))
        JavaFileObject$Kind/CLASS]
     (openOutputStream [] baos)))
@@ -106,9 +106,14 @@
           (interpose ".")
           (apply str))))))
 
-(defn compile-all-java [directory]
-  (->> (watch/all-files (io/file directory))
-    (map (fn [f] [(file->class directory f) f]))
+(defn compile-all-java [directories]
+  (->> directories
+    (mapcat
+      (fn [d]
+        (->> d
+          io/file
+          watch/all-files
+          (map #(vector (file->class d %) %)))))
     (remove #(-> % first nil?))
     (map (fn [[c f]] [c (slurp f)]))
     (into {})
