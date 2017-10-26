@@ -3,7 +3,7 @@
    [leiningen.core.eval :as eval]))
 
 (def overwrites
-  '[[virgil "0.1.6"]
+  '[[virgil "0.1.7"]
     [org.ow2.asm/asm "5.1"]
     [org.clojure/tools.namespace "0.2.11"]])
 

@@ -1,4 +1,4 @@
-(defproject virgil "0.1.7-alpha1"
+(defproject virgil "0.1.7"
   :license {:name "MIT License"}
   :dependencies [[org.ow2.asm/asm "5.1"]
                  [org.clojure/tools.namespace "0.2.11"]]
