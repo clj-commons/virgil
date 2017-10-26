@@ -90,9 +90,16 @@
 
       class->bytecode)))
 
+(defn java-file?
+  [path]
+  (let [base-name (io/file path)]
+    (and
+      (.endsWith (.getName base-name) ".java")
+      (not (.startsWith (.getName base-name) ".#")))))
+
 (defn file->class [^String prefix ^File f]
   (let [path (str f)]
-    (when (.endsWith path ".java")
+    (when (java-file? path)
       (let [path' (.substring path (count prefix) (- (count path) 5))]
         (->> (str/split path' #"/|\\")
           (remove empty?)
