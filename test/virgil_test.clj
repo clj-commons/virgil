@@ -11,12 +11,12 @@
 
 (defn magic-number []
   (let [cl (clojure.lang.RT/makeClassLoader)
-        c (Class/forName "virgil.Test" false cl)]
+        c  (Class/forName "virgil.Test" false cl)]
     (eval `(. (new ~c) magicNumber))))
 
 (defn cp [file class]
   (sh/sh "cp" (str "test/" file ".java") (str "/tmp/virgil/virgil/" class ".java"))
-  (Thread/sleep 2000))
+  (Thread/sleep 3000))
 
 (deftest test-watch
   (sh/sh "rm" "-rf" "/tmp/virgil")
