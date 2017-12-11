@@ -86,7 +86,6 @@
           rank-order      (decompile/rank-order class->bytecode)]
 
       (doseq [[class bytecode] (sort-by #(-> % key rank-order) class->bytecode)]
-        (println "compiling" class)
         (.defineClass ^DynamicClassLoader cl class bytecode nil))
 
       class->bytecode)))
