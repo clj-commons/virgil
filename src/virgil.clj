@@ -18,7 +18,7 @@
           (try
             (f)
             (catch Throwable e
-              (println (.getMessage e))))
+              (.printStackTrace e)))
           (recur false))
         (recur true)))))
 
@@ -47,12 +47,13 @@
         recompile (make-idle-callback recompile 100)]
 
     (doseq [d directories]
-     (let [prefix (.getCanonicalPath (io/file d))]
-       (when-not (contains? @watches prefix)
-         (swap! watches conj prefix)
-         (watch-directory (io/file d)
-           (fn [f]
-             (when (java-file? (str f))
-               (recompile)))))))
+      (let [prefix (.getCanonicalPath (io/file d))]
+        (recompile)
+        (when-not (contains? @watches prefix)
+          (swap! watches conj prefix)
+          (watch-directory (io/file d)
+            (fn [f]
+              (when (java-file? (str f))
+                (recompile)))))))
 
-   (recompile)))
+    (recompile)))

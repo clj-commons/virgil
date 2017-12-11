@@ -81,11 +81,12 @@
 (defn compile-java
   [name->source]
   (when-not (empty? name->source)
-    (let [cl (clojure.lang.RT/makeClassLoader)
+    (let [cl              (clojure.lang.RT/makeClassLoader)
           class->bytecode (source->bytecode name->source)
-          rank-order (decompile/rank-order class->bytecode)]
+          rank-order      (decompile/rank-order class->bytecode)]
 
       (doseq [[class bytecode] (sort-by #(-> % key rank-order) class->bytecode)]
+        (println "compiling" class)
         (.defineClass ^DynamicClassLoader cl class bytecode nil))
 
       class->bytecode)))
