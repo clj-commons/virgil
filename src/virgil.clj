@@ -17,6 +17,8 @@
         (do
           (try
             (f)
+            (catch RuntimeException e
+              (println (.getMessage e)))
             (catch Throwable e
               (.printStackTrace e)))
           (recur false))
