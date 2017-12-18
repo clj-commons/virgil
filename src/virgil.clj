@@ -46,16 +46,16 @@
                     ;; refresh-all can use in-ns.
                     (binding [*ns* *ns*]
                       (refresh-all)))
-        recompile (make-idle-callback recompile 100)]
+        schedule-recompile (make-idle-callback recompile 100)]
 
     (doseq [d directories]
       (let [prefix (.getCanonicalPath (io/file d))]
-        (recompile)
+        (schedule-recompile)
         (when-not (contains? @watches prefix)
           (swap! watches conj prefix)
           (watch-directory (io/file d)
             (fn [f]
               (when (java-file? (str f))
-                (recompile)))))))
+                (schedule-recompile)))))))
 
     (recompile)))
