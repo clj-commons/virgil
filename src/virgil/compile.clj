@@ -10,6 +10,9 @@
    [java.io
     File
     ByteArrayOutputStream]
+   [java.net
+    URL
+    URLClassLoader]
    [java.util.concurrent
     ConcurrentHashMap]
    [javax.tools
@@ -78,8 +81,26 @@
                             (swap! assoc class-name (ByteArrayOutputStream.))
                             (get class-name))))))))
 
+(defn get-java-compiler
+  "Return an instance of Java compiler. Replaces
+ `(ToolProvider/getSystemJavaCompiler)` by not caching the compiler class.
+  Caching creates problems when tools.jar is added onto classpath after the
+  compiler was run. See
+  https://github.com/clojure-emacs/cider-nrepl/issues/463."
+  []
+  ;; Code is rewritten from javax/tools/ToolProvider.java
+  (let [file (io/file (System/getProperty "java.home"))
+        file (if (.equalsIgnoreCase (.getName file) "jre")
+               (.getParentFile file)
+               file)
+        file (io/file file "lib" "tools.jar")
+        urls (into-array URL [(io/as-url file)])
+        cl (URLClassLoader/newInstance urls)
+        compiler-class (Class/forName "com.sun.tools.javac.api.JavacTool" false cl)]
+    (.newInstance compiler-class)))
+
 (defn source->bytecode [name->source]
-  (let [compiler (ToolProvider/getSystemJavaCompiler)
+  (let [compiler (get-java-compiler)
         diag     (DiagnosticCollector.)
         cache    (atom {})
         mgr      (class-manager nil (.getStandardFileManager compiler nil nil nil) cache)
