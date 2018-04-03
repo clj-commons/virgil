@@ -15,8 +15,10 @@
     (eval `(. (new ~c) magicNumber))))
 
 (defn cp [file class]
-  (sh/sh "cp" (str "test/" file ".java") (str "/tmp/virgil/virgil/" class ".java"))
-  (Thread/sleep 3000))
+  (sh/sh "cp" (str "test/" file ".java") (str "/tmp/virgil/virgil/" class ".java")))
+
+(defn wait []
+  (Thread/sleep 6000))
 
 (deftest test-watch
   (sh/sh "rm" "-rf" "/tmp/virgil")
@@ -25,13 +27,17 @@
 
   (cp 'a 'ATest)
   (cp 'c 'Test)
+  (wait)
   (is (= 24 (magic-number)))
 
   (cp 'd 'Test)
+  (wait)
   (is (= 25 (magic-number)))
 
   (cp 'b 'ATest)
+  (wait)
   (is (= 43 (magic-number)))
 
   (cp 'c 'Test)
+  (wait)
   (is (= 42 (magic-number))))
