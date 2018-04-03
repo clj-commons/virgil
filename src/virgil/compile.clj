@@ -3,6 +3,7 @@
    [clojure.java.io :as io]
    [virgil.watch :as watch]
    [virgil.decompile :as decompile]
+   [virgil.util :refer [print-diagnostics]]
    [clojure.string :as str])
   (:import
    [clojure.lang
@@ -146,14 +147,16 @@
           (apply str))))))
 
 (defn compile-all-java [directories]
-  (->> directories
-    (mapcat
-      (fn [d]
-        (->> d
-          io/file
-          watch/all-files
-          (map #(vector (file->class d %) %)))))
-    (remove #(-> % first nil?))
-    (map (fn [[c f]] [c (slurp f)]))
-    (into {})
-    compile-java))
+  (let [diag (DiagnosticCollector.)
+        name->source (->> directories
+                          (mapcat
+                           (fn [d]
+                             (->> d
+                                  io/file
+                                  watch/all-files
+                                  (map #(vector (file->class d %) %)))))
+                          (remove #(-> % first nil?))
+                          (map (fn [[c f]] [c (slurp f)]))
+                          (into {}))]
+    (compile-java nil diag name->source)
+    (print-diagnostics diag)))
