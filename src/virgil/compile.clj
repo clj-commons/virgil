@@ -99,34 +99,32 @@
         compiler-class (Class/forName "com.sun.tools.javac.api.JavacTool" false cl)]
     (.newInstance compiler-class)))
 
-(defn source->bytecode [name->source]
-  (let [compiler (get-java-compiler)
-        diag     (DiagnosticCollector.)
+(defn source->bytecode [opts diag name->source]
+  (let [compiler (or (get-java-compiler)
+                     (throw (Exception. "Can't create the Java compiler (are you on JRE?)")))
         cache    (atom {})
         mgr      (class-manager nil (.getStandardFileManager compiler nil nil nil) cache)
-        task     (.getTask compiler nil mgr diag nil nil
-                   (->> name->source
-                     (map #(source-object (key %) (val %)))
-                     vec))]
-    (if (.call task)
+        task     (.getTask compiler nil mgr diag opts nil
+                           (mapv (fn [[k v]] (source-object k v)) name->source))]
+    (when (.call task)
       (zipmap
-        (keys @cache)
-        (->> @cache
-          vals
-          (map #(.toByteArray ^ByteArrayOutputStream %))))
-      (throw
-        (RuntimeException.
-          (apply str
-            (interleave (.getDiagnostics diag) (repeat "\n\n"))))))))
+       (keys @cache)
+       (->> @cache
+            vals
+            (map #(.toByteArray ^ByteArrayOutputStream %)))))))
+
+(def ^:dynamic *print-compiled-classes* false)
 
 (defn compile-java
-  [name->source]
+  [opts diag name->source]
   (when-not (empty? name->source)
     (let [cl              (clojure.lang.RT/makeClassLoader)
-          class->bytecode (source->bytecode name->source)
+          class->bytecode (source->bytecode opts diag name->source)
           rank-order      (decompile/rank-order class->bytecode)]
 
       (doseq [[class bytecode] (sort-by #(-> % key rank-order) class->bytecode)]
+        (when *print-compiled-classes*
+          (println (str "  " class)))
         (.defineClass ^DynamicClassLoader cl class bytecode nil))
 
       class->bytecode)))
