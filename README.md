@@ -17,7 +17,7 @@ Happy tarnishing.
 For [Boot](http://boot-clj.com/), add this to your `build.boot`:
 
 ```clj
-(set-env! :dependencies '[[virgil "0.1.8-alpha1"]
+(set-env! :dependencies '[[virgil "0.1.8"]
                           ...])
 
 (require '[virgil.boot :refer [javac*]])
