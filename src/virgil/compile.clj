@@ -157,6 +157,7 @@
                                   (map #(vector (file->class d %) %)))))
                           (remove #(-> % first nil?))
                           (map (fn [[c f]] [c (slurp f)]))
-                          (into {}))]
-    (compile-java nil diag name->source)
-    (print-diagnostics diag)))
+                          (into {}))
+        class->bytecode (compile-java nil diag name->source)]
+    (print-diagnostics diag)
+    class->bytecode))
