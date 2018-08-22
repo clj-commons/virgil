@@ -3,8 +3,8 @@
    [leiningen.core.eval :as eval]))
 
 (def overwrites
-  '[[virgil "0.1.8"]
-    [org.ow2.asm/asm "6.0"]
+  '[[virgil "0.1.9-SNAPSHOT"]
+    [org.ow2.asm/asm "6.2.1"]
     [org.clojure/tools.namespace "0.2.11"]])
 
 (defn overwrite-dependencies [deps overwrites]
