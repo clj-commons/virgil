@@ -1,6 +1,12 @@
 language: clojure
 script: lein do clean, test
+dist: xenial
 jdk:
   - oraclejdk7
   - oraclejdk8
   - oraclejdk9
+  - oraclejdk10
+  - oraclejdk11
+  - oraclejdk12
+  - oraclejdk13
+  - oraclejdk14  
