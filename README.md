@@ -12,6 +12,14 @@ Now, as if by magic, every time the `.java` files on your `:java-source-paths` c
 
 Happy tarnishing.
 
+### From REPL (for instance, for deps.edn users)
+
+Just require virgil from the REPL and launch it. If the java sources are under the java/ folder:
+
+```clj
+user=> (require 'virgil)
+user=> (virgil/watch "java")
+
 ### Boot
 
 For [Boot](http://boot-clj.com/), add this to your `build.boot`:
