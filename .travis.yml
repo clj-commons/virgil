@@ -1,8 +1,7 @@
 language: clojure
 script: lein do clean, test
-dist: precise
+dist: xenial
 jdk:
-  - openjdk7
   - openjdk8
   - openjdk9
   - openjdk10
