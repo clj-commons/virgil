@@ -49,6 +49,13 @@ task.
   `javac` binary. E.g., you can use `(javac* :options ["-Xlint:unchecked"])` to
   print additional warnings from the compiler.
 
+### Local installation as a plugin
+
+Install the [lein-localrepo](https://github.com/kumarshantanu/lein-localrepo) plugin, replace the 'x.y.z' with your own version number and run:
+```bash
+lein localrepo install target/virgil-x.y.z.jar lein-virgil x.y.z
+```
+
 ### license
 
 Copyright © 2016 Zachary Tellman
