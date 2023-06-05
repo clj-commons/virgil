@@ -14,7 +14,7 @@
   (sh/sh "cp" (str "test/" file ".java") (str "/tmp/virgil/virgil/" class ".java")))
 
 (defn wait []
-  (Thread/sleep 1e4))
+  (Thread/sleep (int 1e4)))
 
 (deftest test-watch
   (sh/sh "rm" "-rf" "/tmp/virgil")
