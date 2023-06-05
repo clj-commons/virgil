@@ -3,11 +3,7 @@
    [clojure.java.io :as io]
    [clojure.java.shell :as sh]
    [virgil]
-   [clojure.test :refer :all]
-   [clojure.tools.namespace.repl :refer [disable-unload!]]))
-
-;; Unloading this namespace while test-watch is running breaks the test.
-(disable-unload!)
+   [clojure.test :refer :all]))
 
 (defn magic-number []
   (let [cl (clojure.lang.RT/makeClassLoader)
@@ -23,8 +19,10 @@
 (deftest test-watch
   (sh/sh "rm" "-rf" "/tmp/virgil")
   (.mkdirs (io/file "/tmp/virgil/virgil"))
-  (virgil/watch "/tmp/virgil")
-
+  (virgil/watch-and-recompile ["/tmp/virgil"]
+                              :options ["-Xlint:all"]
+                              :verbose true)
+  (wait)
   (cp 'a 'ATest)
   (cp 'c 'Test)
   (wait)
