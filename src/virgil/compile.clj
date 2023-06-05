@@ -14,6 +14,7 @@
    [java.net
     URL
     URLClassLoader]
+   java.util.ArrayList
    [java.util.concurrent
     ConcurrentHashMap]
    [javax.tools
@@ -119,10 +120,10 @@
 
 (defn java-file?
   [path]
-  (let [base-name (io/file path)]
+  (let [base-name (.getName (io/file path))]
     (and
-      (.endsWith (.getName base-name) ".java")
-      (not (.startsWith (.getName base-name) ".#")))))
+      (.endsWith base-name ".java")
+      (not (.startsWith base-name ".#")))))
 
 (defn file->class [^String prefix ^File f]
   (let [path (str f)]
@@ -133,18 +134,24 @@
           (interpose ".")
           (apply str))))))
 
-(defn compile-all-java [directories]
-  (let [diag (DiagnosticCollector.)
-        name->source (->> directories
-                          (mapcat
-                           (fn [d]
-                             (->> d
-                                  io/file
-                                  watch/all-files
-                                  (map #(vector (file->class d %) %)))))
-                          (remove #(-> % first nil?))
-                          (map (fn [[c f]] [c (slurp f)]))
-                          (into {}))
-        class->bytecode (compile-java nil diag name->source)]
-    (print-diagnostics diag)
-    class->bytecode))
+(defn generate-classname->source
+  "Given the list of directories, return a map of all Java classes within those
+  directories to their source files."
+  [directories]
+  (into {}
+        (for [dir directories
+              file (watch/all-files (io/file dir))
+              :let [class (file->class dir file)]
+              :when class]
+          [class (slurp file)])))
+
+(defn compile-all-java
+  ([directories] (compile-all-java directories nil false))
+  ([directories options verbose?]
+   (let [diag (DiagnosticCollector.)
+         options (ArrayList. (vec options))
+         name->source (generate-classname->source directories)]
+     (println "Compiling" (count name->source)"Java source files in" directories "...")
+     (binding [*print-compiled-classes* verbose?]
+       (compile-java options diag name->source))
+     (print-diagnostics diag))))

@@ -1,37 +1,36 @@
 (ns virgil.watch
   (:import
-   [com.sun.nio.file
-    SensitivityWatchEventModifier]
-   [java.io
-    File]
-   [java.nio.file
-    FileSystems
-    StandardWatchEventKinds
-    WatchEvent
-    WatchEvent$Kind
-    WatchEvent$Modifier
-    WatchService]))
+   com.sun.nio.file.SensitivityWatchEventModifier
+   java.io.File
+   [java.nio.file Files FileSystems FileVisitOption
+    StandardWatchEventKinds Path WatchEvent WatchEvent$Kind
+    WatchEvent$Modifier WatchService]
+   [java.util.concurrent LinkedBlockingQueue TimeUnit]
+   [java.util.function Function Predicate]
+   java.util.stream.Collectors))
 
 (defn ^WatchService watch-service []
   (-> (FileSystems/getDefault) .newWatchService))
 
 (defn all-files [^File dir]
-  (concat
-    (->> dir
-      .listFiles
-      (filter #(.isDirectory ^File %))
-      (mapcat all-files))
-    (->> dir
-      .listFiles
-      (remove #(.isDirectory ^File %)))))
+  (-> (Files/walk (.toPath dir) (into-array FileVisitOption []))
+      (.map (reify java.util.function.Function
+              (apply [_ path]
+                (.toFile ^Path path))))
+      (.filter (reify java.util.function.Predicate
+                 (test [_ f]
+                   (.isFile f))))
+      (.collect (Collectors/toList))))
 
 (defn all-directories [^File dir]
-  (conj
-    (->> dir
-      .listFiles
-      (filter #(.isDirectory ^File %))
-      (mapcat all-directories))
-    dir))
+  (-> (Files/walk (.toPath dir) (into-array FileVisitOption []))
+      (.map (reify java.util.function.Function
+              (apply [_ path]
+                (.toFile ^Path path))))
+      (.filter (reify java.util.function.Predicate
+                 (test [_ f]
+                   (.isDirectory f))))
+      (.collect (Collectors/toList))))
 
 (defn register-watch
   "Takes a mapping of keys to directories, and registers a watch on the new"
@@ -79,3 +78,36 @@
       (.setDaemon true)
       (.setName (str "virgil-watcher-" (swap! cnt inc)))
       .start)))
+
+;; Debouncing logic with idle
+
+(defn- consume-queue-and-callback-when-idle
+  [queue idle-time-in-ms f]
+  (loop [callback-pending false]
+    (let [el (if callback-pending
+               (.poll queue idle-time-in-ms TimeUnit/MILLISECONDS)
+               (.take queue))]
+      (if (nil? el)
+        (do
+          (try
+            (f)
+            (catch RuntimeException e
+              (println (.getMessage e)))
+            (catch Throwable e
+              (.printStackTrace e)))
+          (recur false))
+        (recur true)))))
+
+(defn make-idle-callback
+  [f idle-time-in-ms]
+  (let [queue (LinkedBlockingQueue.)
+        start-thread (delay
+                       (doto
+                           (Thread. (fn []
+                                      (consume-queue-and-callback-when-idle queue idle-time-in-ms f)))
+                         (.setDaemon true)
+                         (.setName "virgil-idle-callback")
+                         .start))]
+    (fn []
+      @start-thread
+      (.put queue :go))))
