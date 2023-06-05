@@ -1,0 +1,39 @@
+version: 2.1
+
+jobs:
+  test:
+    parameters:
+      docker-image:
+        type: string
+      clj-version:
+        type: string
+        default: "1.11"
+      is-alpine:
+        type: boolean
+        default: false
+    working_directory: ~/project
+    docker:
+      - image: << parameters.docker-image >>
+    steps:
+      - checkout
+      - restore_cache:
+          key: project-{{ checksum "project.clj" }}
+      - run: >-
+           lein with-profile +<< parameters.clj-version >> test
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: project-{{ checksum "project.clj" }}
+
+workflows:
+  test_all_jdks:
+    jobs:
+      - test:
+          matrix:
+            parameters:
+              docker-image:
+                - clojure:temurin-8-lein-bullseye
+                - clojure:temurin-11-lein-bullseye
+                - clojure:temurin-17-lein-bullseye
+                - clojure:temurin-20-lein-bullseye
+              clj-version: ["1.10", "1.11"]
