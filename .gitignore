@@ -7,6 +7,9 @@ pom.xml.asc
 *.class
 /.lein-*
 /.nrepl-port
+.nrepl-history
+.cpcache
 .hgignore
 .hg/
 *.DS_Store
+examples/**/target/
