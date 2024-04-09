@@ -3,7 +3,7 @@
 Do you tarnish your Clojure with the occasional hint of Java?  Have you become indescribably tired of reloading your REPL every time you change anything with a `.java` suffix?  Look no further.
 
 Virgil is a library for live-recompiling Java classes from the REPL. This can be
-done either manualy or by starting a process that watches your source
+done either manually or by starting a process that watches your source
 directories for changes in Java files and triggering recompilation when that
 happens.
 
