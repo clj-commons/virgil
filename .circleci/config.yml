@@ -32,8 +32,9 @@ workflows:
           matrix:
             parameters:
               docker-image:
-                - clojure:temurin-8-lein-bullseye
-                - clojure:temurin-11-lein-bullseye
-                - clojure:temurin-17-lein-bullseye
-                - clojure:temurin-20-lein-bullseye
+                - clojure:temurin-8-lein-bookworm
+                - clojure:temurin-11-lein-bookworm
+                - clojure:temurin-17-lein-bookworm
+                - clojure:temurin-21-lein-bookworm
+                - clojure:temurin-22-lein-bookworm
               clj-version: ["1.10", "1.11"]
