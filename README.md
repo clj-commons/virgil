@@ -1,6 +1,8 @@
 <img src="docs/cocytus.jpg" align="right" width="400"/>
 
-Do you tarnish your Clojure with the occasional hint of Java?  Have you become indescribably tired of reloading your REPL every time you change anything with a `.java` suffix?  Look no further.
+Do you tarnish your Clojure with the occasional hint of Java? Have you become
+indescribably tired of reloading your REPL every time you change anything with a
+`.java` suffix? Look no further.
 
 Virgil is a library for live-recompiling Java classes from the REPL. This can be
 done either manually or by starting a process that watches your source
@@ -38,7 +40,7 @@ Happy tarnishing.
 
 ### Supported versions
 
-Virgil makes sure to support Clojure 1.10+ and JDK 8, 11, 17, 20 (see [CI
+Virgil makes sure to support Clojure 1.10+ and JDK 8, 11, 17, 21, 22 (see [CI
 job](https://app.circleci.com/pipelines/github/clojure-goes-fast/virgil).
 Supporting future versions of Java so far required only bumping ASM library
 dependency, so that shouldn't take long. Please, create an issue if you run into
@@ -46,6 +48,6 @@ any compatibility problems.
 
 ### License
 
-Copyright © 2016-2019 Zachary Tellman, 2022-2023 Oleksandr Yakushev
+Copyright © 2016-2019 Zachary Tellman, 2022-2024 Oleksandr Yakushev
 
 Distributed under the MIT License

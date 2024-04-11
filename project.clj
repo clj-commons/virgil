@@ -1,4 +1,4 @@
-(defproject com.clojure-goes-fast/virgil "0.2.0"
+(defproject com.clojure-goes-fast/virgil "0.2.1"
   :license {:name "MIT License"}
   :dependencies [[org.ow2.asm/asm "9.7"]]
   :profiles {:dev {:dependencies [[org.clojure/clojure "1.11.2"]]}
