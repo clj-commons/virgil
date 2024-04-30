@@ -37,4 +37,4 @@ workflows:
                 - clojure:temurin-17-lein-bookworm
                 - clojure:temurin-21-lein-bookworm
                 - clojure:temurin-22-lein-bookworm
-              clj-version: ["1.10", "1.11"]
+              clj-version: ["1.10", "1.11", "1.12"]
