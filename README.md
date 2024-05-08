@@ -34,7 +34,7 @@ warnings, and a `:verbose` flag to print all classnames that got compiled.
 `watch-and-recompile` accepts an optional `:post-hook` function. You can use it
 to, e.g., trigger `tools.namespace` refresh after the classes get recompiled.
 
-Check [examples](examples) directory for sample projects.
+Check [example](example) directory for a sample project.
 
 Happy tarnishing.
 

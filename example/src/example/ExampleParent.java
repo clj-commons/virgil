@@ -1,8 +1,8 @@
 package example;
 
-public abstract class ATest {
+public abstract class ExampleParent {
 
-    public ATest() {}
+    public ExampleParent() {}
 
     public int magicNumber() {
         return 42;

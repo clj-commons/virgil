@@ -3,4 +3,4 @@
 
 (defn -main [& args]
   (virgil/watch-and-recompile ["src"] :verbose true)
-  (assert (= 42 (eval '(.magicNumber (example.Test.))))))
+  (assert (= 84 (eval '(.magicNumber (example.ExampleChild.))))))
