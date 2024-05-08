@@ -38,6 +38,21 @@ Check [example](example) directory for a sample project.
 
 Happy tarnishing.
 
+### Should I use Virgil in production?
+
+Even though it is possible to dynamically compile Java classes with Virgil in
+the production builds of your project, it is not advised. Virgil is primarily a
+dev-time tool. For the release, it is preferable to use *javac* task of your
+build tool to generate real `.class` files that you will later pack into the JAR
+or put onto the classpath in some other way.
+
+### Migration from 0.1.9
+
+From version 0.3.0, Virgil no longer provides `lein-virgil` plugin for
+Leiningen. Instead, you should add `virgil` it as a regular dependency to your
+project (but preferably only during the development) and call its functions from
+the REPL.
+
 ### Supported versions
 
 Virgil makes sure to support Clojure 1.10+ and JDK 8, 11, 17, 21, 22 (see [CI
