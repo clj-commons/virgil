@@ -1,0 +1,17 @@
+# Changelog
+
+### 0.3.0 (2024-05-08)
+
+The first version published under clj-commons.
+
+- Drop `lein-virgil` plugin.
+- Bump ASM to support latest JDK and Clojure versions.
+- Rework public API functions.
+- Remove dependency on `tools.namespace`. Users wishing to reload namespaces
+  after Java code changes can pass a custom hook to
+  `virgil/watch-and-recompile`.
+
+### 0.1.9
+
+The final version published by [Zach Tellman](https://github.com/ztellman). Last
+version to contain `lein-virgil` plugin.
