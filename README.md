@@ -11,9 +11,9 @@ happens.
 
 ### Usage
 
-Add `virgil/virgil` dependency to your `project.clj` or `deps.edn`. Since this
-is a devtime dependency, you probably want to add it to a profile/alias which
-you enable only during development.
+Add `virgil/virgil` dependency to your `project.clj` or `deps.edn`. If you plan
+to use Virgil just as a devtime dependency, then you probably want to add it to
+a profile/alias which you enable only during development.
 
 [![](https://clojars.org/virgil/virgil/latest-version.svg)](https://clojars.org/virgil/virgil)
 
@@ -38,20 +38,25 @@ Check [example](example) directory for a sample project.
 
 Happy tarnishing.
 
-### Should I use Virgil in production?
+### Can I use Virgil in production?
 
-Even though it is possible to dynamically compile Java classes with Virgil in
-the production builds of your project, it is not advised. Virgil is primarily a
-dev-time tool. For the release, it is preferable to use *javac* task of your
-build tool to generate real `.class` files that you will later pack into the JAR
-or put onto the classpath in some other way.
+Virgil can compile Java classes at runtime in a production environment the same
+way as it does during the development, so the answer is yes. However, when you
+do a release build, it is advised to build real Java classes explicitly during
+your build step using *javac* task of your build tool. There are multiple
+arguments for it:
+  * You get extra reliability and assurance that the compiled Java classes will
+    be correctly discoverable by other code.
+  * You get one fewer runtime dependency.
+  * You won't have to rely on JDK-specific tools like `javax.tools` package that
+    might not be available in your production environment (e.g., if it runs on
+    JRE).
 
 ### Migration from 0.1.9
 
 From version 0.3.0, Virgil no longer provides `lein-virgil` plugin for
 Leiningen. Instead, you should add `virgil` it as a regular dependency to your
-project (but preferably only during the development) and call its functions from
-the REPL.
+project and call its functions from the REPL.
 
 ### Supported versions
 
