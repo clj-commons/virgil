@@ -12,8 +12,8 @@ happens.
 ### Usage
 
 Add `virgil/virgil` dependency to your `project.clj` or `deps.edn`. Since this
-is a devtime dependency, you probably want to a profile/alias that you enable
-only during development.
+is a devtime dependency, you probably want to add it to a profile/alias which
+you enable only during development.
 
 [![](https://clojars.org/virgil/virgil/latest-version.svg)](https://clojars.org/virgil/virgil)
 
@@ -56,10 +56,10 @@ the REPL.
 ### Supported versions
 
 Virgil makes sure to support Clojure 1.10+ and JDK 8, 11, 17, 21, 22 (see [CI
-job](https://app.circleci.com/pipelines/github/clj-commons/virgil).
-Supporting future versions of Java so far required only bumping ASM library
-dependency, so that shouldn't take long. Please, create an issue if you run into
-any compatibility problems.
+job](https://app.circleci.com/pipelines/github/clj-commons/virgil)). Supporting
+future versions of Java so far required only bumping ASM library dependency, so
+that shouldn't take long. Please, create an issue if you run into any
+compatibility problems.
 
 ### License
 
