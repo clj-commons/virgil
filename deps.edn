@@ -1,0 +1,18 @@
+{:paths ["src"]
+ :deps {org.clojure/clojure {:mvn/version "1.11.3" :mvn/scope "provided"}
+        org.ow2.asm/asm {:mvn/version "9.7"}}
+
+ :aliases
+ {:build {:deps {io.github.clojure/tools.build {:mvn/version "0.10.0"}
+                 slipset/deps-deploy {:mvn/version "0.2.2"}}
+          :ns-default build}
+
+  :1.10 {:override-deps {org.clojure/clojure {:mvn/version "1.10.3"}}}
+  :1.12 {:override-deps {org.clojure/clojure {:mvn/version "1.12.0-alpha11"}}}
+
+  :dev {:extra-paths ["test"]}
+
+  :test {:extra-paths ["test"]
+         :extra-deps {io.github.cognitect-labs/test-runner {:git/tag "v0.5.1"
+                                                            :git/sha "dfb30dd"}}
+         :exec-fn cognitect.test-runner.api/test}}}
