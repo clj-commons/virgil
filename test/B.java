@@ -1,8 +1,8 @@
 package virgil;
 
-public class Test extends ATest {
+public class B extends A {
 
-    public Test() { super(); }
+    public B() { super(); }
 
     public int magicNumber() {
         return super.magicNumber();

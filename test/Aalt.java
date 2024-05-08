@@ -5,6 +5,6 @@ public abstract class A {
     public A() {}
 
     public int magicNumber() {
-        return 24;
+        return 42;
     }
 }

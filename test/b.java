@@ -1,10 +1,10 @@
 package virgil;
 
-public abstract class ATest {
+public class B extends A {
 
-    public ATest() {}
+    public B() { super(); }
 
     public int magicNumber() {
-        return 42;
+        return super.magicNumber();
     }
 }

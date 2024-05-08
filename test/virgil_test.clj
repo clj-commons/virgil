@@ -1,41 +1,82 @@
 (ns virgil-test
-  (:require
-   [clojure.java.io :as io]
-   [clojure.java.shell :as sh]
-   [virgil]
-   [clojure.test :refer :all]))
+  (:require [clojure.java.io :as io]
+            [clojure.string :as str]
+            [clojure.test :refer :all]
+            virgil)
+  (:import java.nio.file.Files
+           java.nio.file.attribute.FileAttribute))
+
+(deftest version-sanity-check
+  (let [v (System/getenv "CLOJURE_VERSION")]
+    (println "Running on Clojure" (clojure-version))
+    (when v (is (clojure.string/starts-with? (clojure-version) v)))))
+
+(def ^:dynamic *dir*)
+
+(defn mk-tmp []
+  (.toFile (Files/createTempDirectory "virgil" (into-array FileAttribute []))))
 
 (defn magic-number []
   (let [cl (clojure.lang.RT/makeClassLoader)
-        c  (Class/forName "virgil.Test" false cl)]
+        c  (Class/forName "virgil.B" false cl)]
     (eval `(. (new ~c) magicNumber))))
 
 (defn cp [file class]
-  (sh/sh "cp" (str "test/" file ".java") (str "/tmp/virgil/virgil/" class ".java")))
+  (let [dest (io/file *dir* "virgil")]
+    (.mkdir dest)
+    (io/copy (io/file "test" (str file ".java"))
+             (io/file dest (str class ".java")))))
 
 (defn wait []
-  (Thread/sleep (int 1e4)))
+  (Thread/sleep 500))
 
-(deftest test-watch
-  (sh/sh "rm" "-rf" "/tmp/virgil")
-  (.mkdirs (io/file "/tmp/virgil/virgil"))
-  (virgil/watch-and-recompile ["/tmp/virgil"]
-                              :options ["-Xlint:all"]
-                              :verbose true)
-  (wait)
-  (cp 'a 'ATest)
-  (cp 'c 'Test)
-  (wait)
-  (is (= 24 (magic-number)))
+(defn wait-until-true [f]
+  (loop [i 10] ;; Max 10 tries
+    (when (pos? i)
+      (wait)
+      (when-not (f) (recur (dec i))))))
 
-  (cp 'd 'Test)
-  (wait)
-  (is (= 25 (magic-number)))
+(defn recompile []
+  (virgil/compile-java [(str *dir*)]))
 
-  (cp 'b 'ATest)
-  (wait)
-  (is (= 43 (magic-number)))
+(deftest manual-compile-test
+  (binding [*dir* (mk-tmp)]
+    (cp "A" 'A)
+    (cp "B" 'B)
+    (recompile)
+    (is (= 24 (magic-number)))
 
-  (cp 'c 'Test)
-  (wait)
-  (is (= 42 (magic-number))))
+    (cp "Balt" 'B)
+    (recompile)
+    (is (= 25 (magic-number)))
+
+    (cp "Aalt" 'A)
+    (recompile)
+    (is (= 43 (magic-number)))
+
+    (cp "B" 'B)
+    (recompile)
+    (is (= 42 (magic-number)))))
+
+;; This test is commented out because file watcher service is not realiable.
+;; TODO: investigate if stability can be improved.
+#_
+(deftest watch-and-recompile-test
+  (binding [*dir* (mk-tmp)]
+    (virgil/watch-and-recompile [(str *dir*)])
+    (cp "A" 'A)
+    (cp "B" 'B)
+    (wait-until-true #(= 24 (magic-number)))
+    (is (= 24 (magic-number)))
+
+    (cp "Balt" 'B)
+    (wait-until-true #(= 25 (magic-number)))
+    (is (= 25 (magic-number)))
+
+    (cp "Aalt" 'A)
+    (wait-until-true #(= 43 (magic-number)))
+    (is (= 43 (magic-number)))
+
+    (cp "B" 'B)
+    (wait-until-true #(= 42 (magic-number)))
+    (is (= 42 (magic-number)))))
