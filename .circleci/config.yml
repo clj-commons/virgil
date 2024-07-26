@@ -9,7 +9,7 @@ jobs:
         type: string
     working_directory: ~/project
     docker:
-      - image: clojure:temurin-<< parameters.jdk-version>>-jammy
+      - image: clojure:temurin-<< parameters.jdk-version>>-noble
     environment:
       CLOJURE_VERSION: << parameters.clj-version >>
     steps:

@@ -6,7 +6,8 @@
   (:import java.nio.file.Files
            java.nio.file.attribute.FileAttribute))
 
-(deftest version-sanity-check
+;; Sanity check we run the Clojure version which we think we do.
+(deftest clojure-version-sanity-check
   (let [v (System/getenv "CLOJURE_VERSION")]
     (println "Running on Clojure" (clojure-version))
     (when v (is (clojure.string/starts-with? (clojure-version) v)))))
