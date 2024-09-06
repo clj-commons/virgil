@@ -55,7 +55,7 @@ arguments for it:
 ### Migration from 0.1.9
 
 From version 0.3.0, Virgil no longer provides `lein-virgil` plugin for
-Leiningen. Instead, you should add `virgil` it as a regular dependency to your
+Leiningen. Instead, you should add `virgil` as a regular dependency to your
 project and call its functions from the REPL.
 
 ### Supported versions
