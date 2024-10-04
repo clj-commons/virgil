@@ -28,5 +28,5 @@ workflows:
       - test:
           matrix:
             parameters:
-              jdk-version: ["8", "11", "17", "21", "22"]
+              jdk-version: ["8", "11", "17", "21", "23"]
               clj-version: ["1.10", "1.11", "1.12"]
