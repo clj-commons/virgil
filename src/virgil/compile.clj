@@ -154,4 +154,6 @@
      (println "Compiling" (count name->source)"Java source files in" directories "...")
      (binding [*print-compiled-classes* verbose?]
        (compile-java options diag name->source))
-     (print-diagnostics diag))))
+     (print-diagnostics diag)
+     (when-not (empty? (.getDiagnostics diag))
+       (throw (ex-info "Compilation failed" {}))))))
