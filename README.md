@@ -66,6 +66,11 @@ future versions of Java so far required only bumping ASM library dependency, so
 that shouldn't take long. Please, create an issue if you run into any
 compatibility problems.
 
+## Publishing new releases
+
+Releases are handled by CircleCI. All you need to do is to tag a commit with a
+`x.y.z` and push the tag.
+
 ### License
 
 Copyright © 2016-2019 Zachary Tellman, 2022-2024 Oleksandr Yakushev

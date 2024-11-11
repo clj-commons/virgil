@@ -1,5 +1,10 @@
 # Changelog
 
+### 0.3.1 (2024-11-11)
+
+- [#39](https://github.com/clj-commons/virgil/pull/39): Throw exception if
+  compilation failed.
+
 ### 0.3.0 (2024-05-08)
 
 The first version published under clj-commons.
