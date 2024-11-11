@@ -22,11 +22,37 @@ jobs:
             - ~/.m2
           key: deps-{{ checksum "deps.edn" }}
 
+  deploy:
+    working_directory: ~/project
+    docker:
+      - image: clojure:temurin-8-noble
+    steps:
+      - checkout
+      - run:
+         name: Deploy
+         command: clojure -T:build deploy :version \"$CIRCLE_TAG\"
+
+run_always: &run_always
+  filters:
+    branches:
+      only: /.*/
+    tags:
+      only: /.*/
+
 workflows:
-  test_all_jdks:
+  run_all:
     jobs:
       - test:
           matrix:
             parameters:
               jdk-version: ["8", "11", "17", "21", "23"]
               clj-version: ["1.10", "1.11", "1.12"]
+          <<: *run_always
+      - deploy:
+          requires:
+            - test
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^\d+\.\d+\.\d+(-\w+)?/
