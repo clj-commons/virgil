@@ -148,10 +148,13 @@
 (defn compile-all-java
   ([directories] (compile-all-java directories nil false))
   ([directories options verbose?]
-   (let [diag (DiagnosticCollector.)
+   (let [collector (DiagnosticCollector.)
          options (ArrayList. (vec options))
          name->source (generate-classname->source directories)]
      (println "Compiling" (count name->source)"Java source files in" directories "...")
      (binding [*print-compiled-classes* verbose?]
-       (compile-java options diag name->source))
-     (print-diagnostics diag))))
+       (compile-java options collector name->source))
+     (when-let [diags (seq (.getDiagnostics collector))]
+       (print-diagnostics diags)
+       (throw (ex-info (format "Compilation failed: %d error(s)." (count diags))
+                       {:diagnostics diags}))))))
