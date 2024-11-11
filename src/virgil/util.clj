@@ -1,6 +1,6 @@
 (ns virgil.util
   "Utilities for cross-tooling."
-  (:import (javax.tools DiagnosticCollector Diagnostic$Kind)))
+  (:import (javax.tools Diagnostic Diagnostic$Kind)))
 
 (defn println-err [& args]
   (binding [*err* *out*]
@@ -15,8 +15,8 @@
     Diagnostic$Kind/MANDATORY_WARNING println-err
     println))
 
-(defn print-diagnostics [^DiagnosticCollector diag-coll]
-  (doseq [d (.getDiagnostics diag-coll)]
+(defn print-diagnostics [diagnostics]
+  (doseq [^Diagnostic d diagnostics]
     (let [k (.getKind d)
           log (infer-print-function k)]
       (if (nil? (.getSource d))
