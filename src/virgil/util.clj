@@ -3,7 +3,7 @@
   (:import (javax.tools DiagnosticCollector Diagnostic$Kind)))
 
 (defn println-err [& args]
-  (binding [*err* *out*]
+  (binding [*out* *err*]
     (apply println args)))
 
 (defn- infer-print-function
