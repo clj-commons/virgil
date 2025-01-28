@@ -1,5 +1,12 @@
 # Changelog
 
+### 0.3.2 (2025-01-28)
+
+- [#40](https://github.com/clj-commons/virgil/pull/40): Don't throw exception on
+  warnings.
+- [#40](https://github.com/clj-commons/virgil/pull/40): Don't let compilation
+  errors crash the watch-and-recompile loop.
+
 ### 0.3.1 (2024-11-11)
 
 - [#39](https://github.com/clj-commons/virgil/pull/39): Throw exception if
