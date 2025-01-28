@@ -81,3 +81,17 @@
     (cp "B" 'B)
     (wait-until-true #(= 42 (magic-number)))
     (is (= 42 (magic-number)))))
+
+(deftest warnings-shouldnt-throw-test
+  (binding [*dir* (mk-tmp)]
+    (cp "ClassWithWarning" 'ClassWithWarning)
+    (is (nil? (recompile))))
+
+  (binding [*dir* (mk-tmp)]
+    (cp "ClassWithError" 'ClassWithError)
+    (is (thrown? clojure.lang.ExceptionInfo (recompile)))))
+
+(deftest errors-shouldnt-break-watch-and-recompile-test
+  (binding [*dir* (mk-tmp)]
+    (cp "ClassWithError" 'ClassWithError)
+    (is (nil? (virgil/watch-and-recompile [(str *dir*)])))))

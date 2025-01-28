@@ -2,12 +2,16 @@
   (:require
    [clojure.java.io :as io]
    [virgil.watch :refer (watch-directory make-idle-callback)]
-   [virgil.compile :refer (compile-all-java java-file?)]))
+   [virgil.compile :refer (compile-all-java java-file?)]
+   virgil.util))
 
 (def watches (atom #{}))
 
 (defn compile-java [directories & {:keys [options verbose]}]
-  (compile-all-java directories options verbose))
+  (let [diags (compile-all-java directories options verbose)]
+    (when (virgil.util/compilation-errored? diags)
+      (throw (ex-info (format "Compilation failed: %d error(s)." (count diags))
+                      {:diagnostics diags})))))
 
 (defn watch-and-recompile [directories & {:keys [options verbose post-hook]}]
   (let [recompile (fn []

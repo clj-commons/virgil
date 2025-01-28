@@ -20,11 +20,14 @@
     (let [k (.getKind d)
           log (infer-print-function k)]
       (if (nil? (.getSource d))
-        (println-err (format "%s: %s\n"
+        (println-err (format "%s: %s"
                              (.toString k)
                              (.getMessage d nil)))
-        (println-err (format "%s: %s, line %d: %s\n"
+        (println-err (format "%s: %s, line %d: %s"
                      (.toString k)
                      (.. d getSource getName)
                      (.getLineNumber d)
                      (.getMessage d nil)))))))
+
+(defn compilation-errored? [diagnostics]
+  (some #(= (.getKind ^Diagnostic %) Diagnostic$Kind/ERROR) diagnostics))
