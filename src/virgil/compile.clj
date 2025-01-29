@@ -2,6 +2,7 @@
   (:require
    [clojure.java.io :as io]
    [virgil.watch :as watch]
+   [clojure.tools.namespace.repl :refer (refresh-all)]
    [virgil.decompile :as decompile]
    [virgil.util :refer [print-diagnostics]]
    [clojure.string :as str])
@@ -154,6 +155,10 @@
      (println "\nCompiling" (count name->source)"Java source files in" directories "...")
      (binding [*print-compiled-classes* verbose?]
        (compile-java options collector name->source))
+     ;; We need to create a thread binding for *ns* so that
+     ;; refresh-all can use in-ns.
+     (binding [*ns* *ns*]
+       (refresh-all))
      (when-let [diags (seq (.getDiagnostics collector))]
        (print-diagnostics diags)
        diags))))
