@@ -40,7 +40,7 @@
 
 (deftest manual-compile-test
   (let [dir       (mk-tmp)
-        recompile #(virgil/compile-java [(str dir)])
+        recompile #(recompile dir)
         cp        #(cp dir %1 %2)]
     (cp "A" 'A)
     (cp "B" 'B)
