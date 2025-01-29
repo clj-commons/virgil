@@ -1,5 +1,6 @@
 {:paths ["src"]
  :deps {org.clojure/clojure {:mvn/version "1.12.0" :mvn/scope "provided"}
+        org.clojure/tools.namespace {:mvn/version "1.5.0"}
         org.ow2.asm/asm {:mvn/version "9.7"}}
 
  :aliases
