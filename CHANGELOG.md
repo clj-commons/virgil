@@ -1,5 +1,10 @@
 # Changelog
 
+### 0.4.0 (2025-03-27)
+
+- [#42](https://github.com/clj-commons/virgil/pull/42): Bump ASM to 9.7.1
+  (enables JDK24 support).
+
 ### 0.3.2 (2025-01-28)
 
 - [#40](https://github.com/clj-commons/virgil/pull/40): Don't throw exception on
