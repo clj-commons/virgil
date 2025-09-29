@@ -1,5 +1,10 @@
 # Changelog
 
+### 0.5.0 (2025-09-29)
+
+- [#43](https://github.com/clj-commons/virgil/pull/43): Bump ASM to 9.8
+  (enables JDK25 support).
+
 ### 0.4.0 (2025-03-27)
 
 - [#42](https://github.com/clj-commons/virgil/pull/42): Bump ASM to 9.7.1
