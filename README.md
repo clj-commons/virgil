@@ -60,7 +60,7 @@ project and call its functions from the REPL.
 
 ### Supported versions
 
-Virgil makes sure to support Clojure 1.10+ and JDK 8, 11, 17, 21, 24 (see [CI
+Virgil makes sure to support Clojure 1.10+ and JDK 8, 11, 17, 21, 25 (see [CI
 job](https://app.circleci.com/pipelines/github/clj-commons/virgil)). Supporting
 future versions of Java so far required only bumping ASM library dependency, so
 that shouldn't take long. Please, create an issue if you run into any
