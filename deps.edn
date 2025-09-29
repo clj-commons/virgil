@@ -1,15 +1,15 @@
 {:paths ["src"]
- :deps {org.clojure/clojure {:mvn/version "1.12.0" :mvn/scope "provided"}
-        org.ow2.asm/asm {:mvn/version "9.7.1"}}
+ :deps {org.clojure/clojure {:mvn/version "1.12.3" :mvn/scope "provided"}
+        org.ow2.asm/asm {:mvn/version "9.8"}}
 
  :aliases
- {:build {:deps {io.github.clojure/tools.build {:mvn/version "0.10.0"}
+ {:build {:deps {io.github.clojure/tools.build {:mvn/version "0.10.10"}
                  slipset/deps-deploy {:mvn/version "0.2.2"}}
           :ns-default build}
 
   :1.10 {:override-deps {org.clojure/clojure {:mvn/version "1.10.3"}}}
   :1.11 {:override-deps {org.clojure/clojure {:mvn/version "1.11.4"}}}
-  :1.12 {:override-deps {org.clojure/clojure {:mvn/version "1.12.0"}}}
+  :1.12 {:override-deps {org.clojure/clojure {:mvn/version "1.12.3"}}}
 
   :dev {:extra-paths ["test"]}
 
