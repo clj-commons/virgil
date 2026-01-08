@@ -2,6 +2,8 @@
 
 ### master (unreleased)
 
+### 0.5.1 (2026-01-09)
+
 - [#45](https://github.com/clj-commons/virgil/pull/45): Address reflection warnings.
 - [#46](https://github.com/clj-commons/virgil/pull/46): Enable linting on CI.
 
