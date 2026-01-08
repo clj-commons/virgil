@@ -14,12 +14,15 @@
    [java.net
     URL
     URLClassLoader]
-   java.util.ArrayList
+   [java.util
+    ArrayList
+    List]
    [java.util.concurrent
     ConcurrentHashMap]
    [javax.tools
     DiagnosticCollector
     ForwardingJavaFileManager
+    JavaCompiler
     JavaFileObject$Kind
     SimpleJavaFileObject
     ToolProvider]))
@@ -28,9 +31,9 @@
 ;; provided a map for this territory
 
 (def ^ConcurrentHashMap class-cache
-  (-> (.getDeclaredField clojure.lang.DynamicClassLoader "classCache")
-    (doto (.setAccessible true))
-    (.get nil)))
+  (let [f (.getDeclaredField clojure.lang.DynamicClassLoader "classCache")]
+    (.setAccessible f true)
+    (.get f nil)))
 
 (defn source-object
   [class-name source]
@@ -85,12 +88,12 @@
 
 (defn get-java-compiler
   "Return an instance of Java compiler."
-  []
-  (ToolProvider/getSystemJavaCompiler))
+  ^JavaCompiler []
+  (or (ToolProvider/getSystemJavaCompiler)
+      (throw (Exception. "Can't create the Java compiler (are you on JRE?)"))))
 
 (defn source->bytecode [opts diag name->source]
-  (let [compiler (or (get-java-compiler)
-                     (throw (Exception. "Can't create the Java compiler (are you on JRE?)")))
+  (let [compiler (get-java-compiler)
         cache    (atom {})
         mgr      (class-manager nil (.getStandardFileManager compiler nil nil nil) cache)
         task     (.getTask compiler nil mgr diag opts nil
@@ -149,7 +152,7 @@
   ([directories] (compile-all-java directories nil false))
   ([directories options verbose?]
    (let [collector (DiagnosticCollector.)
-         options (ArrayList. (vec options))
+         options (ArrayList. ^List (vec options))
          name->source (generate-classname->source directories)]
      (println "\nCompiling" (count name->source)"Java source files in" directories "...")
      (binding [*print-compiled-classes* verbose?]
