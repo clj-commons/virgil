@@ -1,5 +1,10 @@
 # Changelog
 
+### master (unreleased)
+
+- [#45](https://github.com/clj-commons/virgil/pull/45): Address reflection warnings.
+- [#46](https://github.com/clj-commons/virgil/pull/46): Enable linting on CI.
+
 ### 0.5.0 (2025-09-29)
 
 - [#43](https://github.com/clj-commons/virgil/pull/43): Bump ASM to 9.8

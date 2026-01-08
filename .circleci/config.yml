@@ -22,6 +22,20 @@ jobs:
             - ~/.m2
           key: deps-{{ checksum "deps.edn" }}
 
+  lint:
+    docker:
+      - image: clojure:temurin-25-noble
+    steps:
+      - checkout
+      - restore_cache:
+          key: lint-{{ checksum "deps.edn" }}
+      - run: clojure -M:kondo --lint src
+      - run: clojure -M:eastwood
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: lint-{{ checksum "deps.edn" }}
+
   deploy:
     working_directory: ~/project
     docker:
@@ -47,6 +61,8 @@ workflows:
             parameters:
               jdk-version: ["8", "11", "17", "21", "25"]
               clj-version: ["1.10", "1.11", "1.12"]
+          <<: *run_always
+      - lint:
           <<: *run_always
       - deploy:
           requires:
