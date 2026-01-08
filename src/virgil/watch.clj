@@ -9,25 +9,25 @@
    [java.util.function Function Predicate]
    java.util.stream.Collectors))
 
-(defn ^WatchService watch-service []
+(defn watch-service ^WatchService []
   (-> (FileSystems/getDefault) .newWatchService))
 
 (defn all-files [^File dir]
   (-> (Files/walk (.toPath dir) (into-array FileVisitOption []))
-      (.map (reify java.util.function.Function
+      (.map (reify Function
               (apply [_ path]
                 (.toFile ^Path path))))
-      (.filter (reify java.util.function.Predicate
+      (.filter (reify Predicate
                  (test [_ f]
                    (.isFile ^File f))))
       (.collect (Collectors/toList))))
 
 (defn all-directories [^File dir]
   (-> (Files/walk (.toPath dir) (into-array FileVisitOption []))
-      (.map (reify java.util.function.Function
+      (.map (reify Function
               (apply [_ path]
                 (.toFile ^Path path))))
-      (.filter (reify java.util.function.Predicate
+      (.filter (reify Predicate
                  (test [_ f]
                    (.isDirectory ^File f))))
       (.collect (Collectors/toList))))

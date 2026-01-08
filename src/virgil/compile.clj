@@ -11,9 +11,6 @@
    [java.io
     File
     ByteArrayOutputStream]
-   [java.net
-    URL
-    URLClassLoader]
    [java.util
     ArrayList
     List]
