@@ -19,7 +19,7 @@
                 (.toFile ^Path path))))
       (.filter (reify java.util.function.Predicate
                  (test [_ f]
-                   (.isFile f))))
+                   (.isFile ^File f))))
       (.collect (Collectors/toList))))
 
 (defn all-directories [^File dir]
@@ -29,7 +29,7 @@
                 (.toFile ^Path path))))
       (.filter (reify java.util.function.Predicate
                  (test [_ f]
-                   (.isDirectory f))))
+                   (.isDirectory ^File f))))
       (.collect (Collectors/toList))))
 
 (defn register-watch
@@ -58,9 +58,9 @@
                 key->dir (atom (register-watch {} w directory))]
             (loop []
               (let [k (.take w)
-                    prefix (.toPath (@key->dir k))]
+                    prefix (.toPath ^File (@key->dir k))]
                 (doseq [^WatchEvent e (.pollEvents k)]
-                  (when-let [^File file (-> e .context .toFile)]
+                  (when-let [file (.toFile ^Path (.context e))]
 
                     ;; notify about new file
                     (try
@@ -82,7 +82,7 @@
 ;; Debouncing logic with idle
 
 (defn- consume-queue-and-callback-when-idle
-  [queue idle-time-in-ms f]
+  [^LinkedBlockingQueue queue idle-time-in-ms f]
   (loop [callback-pending false]
     (let [el (if callback-pending
                (.poll queue idle-time-in-ms TimeUnit/MILLISECONDS)
